@@ -1,0 +1,122 @@
+---
+title: "introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(R2Word)
+```
+
+Here is an illustration of some of the R functions
+
+
+```{r Generate}
+
+N = 100 
+number.groups <- 2
+number.timepoints <- 1
+set.seed(3042021)
+
+dat <- data.frame('USUBJID' = rep(paste0('Subject_', formatC(1:N, width = 4, flag = '0')), length.out= N*number.timepoints),
+                  'Group' = rep(paste0('Group_', 1:number.groups), length.out = N*number.timepoints),
+                  'Y_comp' = rep(NA, N*number.timepoints), 
+                  'Time' = rep(paste0('Time_', 1:number.timepoints), each = N),
+                   stringsAsFactors=F)
+    
+        
+# Design Matrix
+X <- model.matrix( ~ Group , data = dat) 
+
+# Parameters:
+Beta <- matrix(0, nrow = ncol(X), dimnames=list(colnames(X), 'param'))
+Beta[] <- c(0.2, 1)
+sigma2 <- 9 
+    
+# Generate Data
+XB <- X %*% Beta
+dat$XB <- as.vector(XB)
+error <- rnorm(n = N, mean = 0, sd = sqrt(sigma2))
+dat$Y <- dat$XB + error
+    
+# Fit Model
+mod <-lm(Y ~ Group, data = dat)
+
+```
+
+ Now that we have fit the model, we want to move quickly to create output. There are R packages that allow us to create output from fitted models. However, the function we will use here is very simple and clean, and allows us to output whatever we want. For example, let's just dump this into output:
+
+```{r dump}
+
+out <- coef(summary(mod))
+out <- cbind.data.frame('Predictor' = c('Intercept', 'Group 2'), out)
+out
+
+
+dump_df_mat_to_file(out = out, 
+                    decimals = c(1, 2, 2, 3), 
+                    table.title = 'OLS Output - Vignette Illustration', 
+                    table.footnote = '**All data simulated',
+                    print.dir = "C:/Users/ciaconangelo/Documents",
+                    file.name = 'OLS_output_vignette')
+
+
+```
+
+
+Okay now let's try out the create_tables() function. We can use that to create frequency tables. 
+
+```{r crosstabs rows}
+
+# Generate ordinal data:
+dat$Y_ord <- sample(x = c(0, 1, 2, 3), size = N, replace = T)
+# table(dat$Y_ord)  
+out <- xtabs( ~ Group + Y_ord, data = dat)
+
+# Row sums
+out <- create.tables(out, prop.table.margin = 1, add.margins = 1)
+out <- cbind.data.frame('Group' = rownames(out), out)
+
+dump_df_mat_to_file(out = out, 
+                    #decimals = c(1, 2, 2, 3), 
+                    table.title = 'Cross-tabs, N(%), row sums - Vignette Illustration', 
+                    table.footnote = '**All data simulated',
+                    print.dir = "C:/Users/ciaconangelo/Documents",
+                    file.name = 'cross_tabs_row_vignette')
+
+
+
+```
+
+We can also use column sums:
+
+
+```{r crosstabs cols}
+
+# Column sums
+out <- xtabs( ~ Group + Y_ord, data = dat)
+
+# Now just a few steps between the cross-tabs and a table in a MS Word doc
+out <- create.tables(out, prop.table.margin = 2, add.margins = 2)
+out <- cbind.data.frame('Group' = rownames(out), out)
+
+# Dump output
+dump_df_mat_to_file(out = out, 
+                    #decimals = c(1, 2, 2, 3), 
+                    table.title = 'Cross-tabs, N(%), col sums - Vignette Illustration', 
+                    table.footnote = '**All data simulated',
+                    print.dir = "C:/Users/ciaconangelo/Documents",
+                    file.name = 'cross_tabs_col_vignette')
+
+
+```
