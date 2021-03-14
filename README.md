@@ -33,8 +33,10 @@ these functions.
 
 ## Examples
 
-See Vignettes for some concise examples of how the functions can help
-workflow.
+For concise examples of how the functions can help your workflow, see
+the Introductory Vignette
+(<https://cjangelo.github.io/R2Word/articles/introduction.html>) under
+`Articles` at the top of this page.
 
 ## License
 
