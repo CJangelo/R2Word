@@ -138,6 +138,8 @@ to output.</p>
   decimals <span class='op'>=</span> <span class='fl'>2</span>,
   NA.string <span class='op'>=</span> <span class='cn'>NA</span>,
   fontname <span class='op'>=</span> <span class='st'>"Arial"</span>,
+  size <span class='op'>=</span> <span class='fl'>11</span>,
+  align <span class='op'>=</span> <span class='st'>"center"</span>,
   table.title <span class='op'>=</span> <span class='cn'>NULL</span>,
   table.footnote <span class='op'>=</span> <span class='cn'>NULL</span>,
   print.dir <span class='op'>=</span> <span class='cn'>NULL</span>,
@@ -158,7 +160,16 @@ if that number applies to all the numbers; default is 2</p></td>
     </tr>
     <tr>
       <th>fontname</th>
-      <td><p>specify the font; default is 'Arial'</p></td>
+      <td><p>specify the font to pass to <code>flextable</code>; default is 'Arial'</p></td>
+    </tr>
+    <tr>
+      <th>size</th>
+      <td><p>specify the font size to pass to <code>flextable</code>; default is 11.</p></td>
+    </tr>
+    <tr>
+      <th>align</th>
+      <td><p>specify the table alignment to pass to <code>flextable</code>; default is 'center'. See
+?flextable::align for details</p></td>
     </tr>
     <tr>
       <th>table.title</th>
