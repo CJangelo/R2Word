@@ -1,5 +1,5 @@
 ---
-title: "introduction"
+title: "Introductory Vignette"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{introduction}
@@ -14,15 +14,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+
+Here is an illustration of how to use these functions to your advantage. 
+
+
+## Generate
+
+Start by generating some data for a linear regression:
+```{r Generate, eval = T}
 library(R2Word)
-```
-
-Here is an illustration of some of the R functions
-
-
-```{r Generate}
-
 N = 100 
 number.groups <- 2
 number.timepoints <- 1
@@ -48,75 +48,75 @@ XB <- X %*% Beta
 dat$XB <- as.vector(XB)
 error <- rnorm(n = N, mean = 0, sd = sqrt(sigma2))
 dat$Y <- dat$XB + error
-    
-# Fit Model
-mod <-lm(Y ~ Group, data = dat)
-
 ```
 
- Now that we have fit the model, we want to move quickly to create output. There are R packages that allow us to create output from fitted models. However, the function we will use here is very simple and clean, and allows us to output whatever we want. For example, let's just dump this into output:
+
+## Fit Model
+
+Next, fit a linear regression model to the data. 
+
+```{r Fit, eval = T}
+mod <-lm(Y ~ Group, data = dat)
+```
+
+
+## Output Results
+
+ Now that we have fit the model, we want to move quickly to create output. There are R packages that allow us to create output from fitted models. However, the function we will use here is very simple and clean, and allows us to output whatever we want. For example, with a few single steps we can dump this dataframe as MS Word output:
+ 
+```{r dir, echo = F, eval = T}
+print.to.this.directory = "C:/Users/ciaconangelo/Documents"
+```
 
 ```{r dump}
-
 out <- coef(summary(mod))
 out <- cbind.data.frame('Predictor' = c('Intercept', 'Group 2'), out)
-out
-
+# Now we have the variable names as a column in the dataframe
 
 dump_df_mat_to_file(out = out, 
                     decimals = c(1, 2, 2, 3), 
                     table.title = 'OLS Output - Vignette Illustration', 
                     table.footnote = '**All data simulated',
-                    print.dir = "C:/Users/ciaconangelo/Documents",
-                    file.name = 'OLS_output_vignette')
-
-
+                    file.name = 'OLS_output_vignette', 
+                    print.dir = print.to.this.directory)
 ```
 
 
-Okay now let's try out the create_tables() function. We can use that to create frequency tables. 
+Okay now let's try out the `create_tables()` function. We can use that to create frequency tables. 
 
 ```{r crosstabs rows}
-
 # Generate ordinal data:
 dat$Y_ord <- sample(x = c(0, 1, 2, 3), size = N, replace = T)
-# table(dat$Y_ord)  
 out <- xtabs( ~ Group + Y_ord, data = dat)
 
 # Row sums
-out <- create.tables(out, prop.table.margin = 1, add.margins = 1)
+out <- create_tables(out, prop.table.margin = 1, add.margins = 1)
 out <- cbind.data.frame('Group' = rownames(out), out)
 
 dump_df_mat_to_file(out = out, 
-                    #decimals = c(1, 2, 2, 3), 
                     table.title = 'Cross-tabs, N(%), row sums - Vignette Illustration', 
                     table.footnote = '**All data simulated',
-                    print.dir = "C:/Users/ciaconangelo/Documents",
-                    file.name = 'cross_tabs_row_vignette')
-
-
-
+                    file.name = 'cross_tabs_row_vignette', 
+                    print.dir = print.to.this.directory)
 ```
 
 We can also use column sums:
 
 
 ```{r crosstabs cols}
-
 # Column sums
 out <- xtabs( ~ Group + Y_ord, data = dat)
 
 # Now just a few steps between the cross-tabs and a table in a MS Word doc
-out <- create.tables(out, prop.table.margin = 2, add.margins = 2)
+out <- create_tables(out, prop.table.margin = 2, add.margins = 2)
 out <- cbind.data.frame('Group' = rownames(out), out)
 
 # Dump output
 dump_df_mat_to_file(out = out, 
-                    #decimals = c(1, 2, 2, 3), 
                     table.title = 'Cross-tabs, N(%), col sums - Vignette Illustration', 
                     table.footnote = '**All data simulated',
-                    print.dir = "C:/Users/ciaconangelo/Documents",
-                    file.name = 'cross_tabs_col_vignette')
-
-
+                    file.name = 'cross_tabs_col_vignette', 
+                    print.dir = print.to.this.directory)
 ```
+
+As you can see, with just a couple of extra lines of code, you can move from the output of an R function like `lm()` or `xtabs` to a simple, clean MS Word doc. The `flextable` package is very flexible but for our purposes we just want a standard, easy way to dump our matrix or dataframe out to a MS Word file. 

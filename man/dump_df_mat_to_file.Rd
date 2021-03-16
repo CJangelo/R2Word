@@ -10,6 +10,8 @@ dump_df_mat_to_file(
   decimals = 2,
   NA.string = NA,
   fontname = "Arial",
+  size = 11,
+  align = "center",
   table.title = NULL,
   table.footnote = NULL,
   print.dir = NULL,
@@ -22,7 +24,12 @@ if that number applies to all the numbers; default is 2}
 
 \item{NA.string}{determines how to print out missing (i.e., NA) strings; default is blank}
 
-\item{fontname}{specify the font; default is 'Arial'}
+\item{fontname}{specify the font to pass to \code{flextable}; default is 'Arial'}
+
+\item{size}{specify the font size to pass to \code{flextable}; default is 11.}
+
+\item{align}{specify the table alignment to pass to \code{flextable}; default is 'center'. See
+?flextable::align for details}
 
 \item{table.title}{pass a character vector specifying the table title}
 
