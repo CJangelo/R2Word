@@ -19,7 +19,13 @@ of using the `flextable` and `officeR` packages.
 
 ## Installation
 
-You can install the released version of R2Word from github:
+You can install the released version of R2Word from github using the
+`devtools` R package. Note that you may need to install `Rtools40` on
+your machine. I have found that the instructions available here to be
+straightforward: <https://cran.r-project.org/bin/windows/Rtools/>.
+
+After installing `Rtools40`, do the following to install `R2Word` from
+github:
 
 ``` r
 install.packages('devtools')
