@@ -10,7 +10,10 @@
 #' @param decimals a vector of the number of decimals to round each numeric column to, can also be a scalar
 #' if that number applies to all the numbers; default is 2
 #' @param NA.string determines how to print out missing (i.e., NA) strings; default is blank
-#' @param fontname specify the font; default is 'Arial'
+#' @param fontname specify the font to pass to `flextable`; default is 'Arial'
+#' @param size specify the font size to pass to `flextable`; default is 11.
+#' @param align specify the table alignment to pass to `flextable`; default is 'center'. See
+#' ?flextable::align for details
 #' @param table.title pass a character vector specifying the table title
 #' @param table.footnote pass a character vector specifying a footnote
 #' @param print.dir pass a file path for the file to be printed out to
@@ -25,6 +28,8 @@
 dump_df_mat_to_file <- function(out,
                                 cols = NULL, decimals = 2, NA.string = NA,  # pass to round_numbers_2
                                 fontname = 'Arial',  # pass to flextable
+                                size = 11,  #pass to flextable
+                                align = 'center', # pass to flextable
                                 table.title = NULL,
                                 table.footnote = NULL,
                                 print.dir = NULL,
@@ -46,7 +51,7 @@ dump_df_mat_to_file <- function(out,
   # Align it
   myft <- flextable::autofit(myft)
   # Center:
-  myft <- flextable::align(myft, align = "center", part = 'all' )
+  myft <- flextable::align(myft, align = align, part = 'all' )
 
 
     # Optionals:
@@ -68,7 +73,7 @@ dump_df_mat_to_file <- function(out,
   # Set the font to Arial:
   myft <- flextable::font(myft, fontname = fontname,  part = 'all')
   # Font size:
-  myft <- flextable::fontsize(myft,  size = 11, part = "all")
+  myft <- flextable::fontsize(myft,  size = size, part = "all")
  # Align it - 9.17.20: Modified the alignment
   # https://stackoverflow.com/questions/57175351/flextable-autofit-in-a-rmarkdown-to-word-doc-causes-table-to-go-outside-page-mar
   #myft <- autofit(myft)
