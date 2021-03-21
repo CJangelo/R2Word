@@ -7,7 +7,7 @@
 <!-- badges: end -->
 
 R2Word, an R package that uses `flextable` functions to quickly and
-easily creating MS Word tables.
+easily create MS Word tables.
 
 ## Description
 

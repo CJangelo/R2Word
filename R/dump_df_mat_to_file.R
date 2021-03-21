@@ -14,6 +14,7 @@
 #' @param size specify the font size to pass to `flextable`; default is 11.
 #' @param align specify the table alignment to pass to `flextable`; default is 'center'. See
 #' ?flextable::align for details
+#' @param shell.table logical, default is FALSE. Specify if all numeric values should be converted to 'x', as in a shell-table for a report
 #' @param table.title pass a character vector specifying the table title
 #' @param table.footnote pass a character vector specifying a footnote
 #' @param print.dir pass a file path for the file to be printed out to
@@ -30,21 +31,38 @@ dump_df_mat_to_file <- function(out,
                                 fontname = 'Arial',  # pass to flextable
                                 size = 11,  #pass to flextable
                                 align = 'center', # pass to flextable
+                                shell.table = FALSE,
                                 table.title = NULL,
                                 table.footnote = NULL,
                                 print.dir = NULL,
                                 file.name = NULL){   # print out
 
 
-  # pass the variables to R1_round_numbers() function
-  #source("C:/Users/ciaconangelo/Documents/R1 Code Library/R1_Function_round_numbers.R")
 
   out <- round_numbers(out, cols = cols, decimals = decimals, NA.string = NA.string)
 
 
-  # library(flextable)
-  # library(officer)
+  if (shell.table) {
 
+    out.shell <- out
+    for (int.val in 0:9) {
+      for (cc in colnames(out.shell)) {
+
+        if (all(grepl('(', out.shell[, cc], fixed = T))) {
+
+          out.shell[, cc] <- gsub(pattern = paste0(int.val),
+                                replace = 'x',
+                                x = out.shell[, cc])
+        }
+      }
+    }
+
+    out <- out.shell
+
+  } #end shell table option
+
+
+# --------------------------------------------------------------------------------------------
   myft <- flextable::flextable(out)
     # Make header bold:
   myft <- flextable::bold(myft, part = 'header')
@@ -81,8 +99,8 @@ dump_df_mat_to_file <- function(out,
 
 
 
-####################################################################
-  # Print out the table using officeR
+#-------------------------------------------------------------------------------------
+  # Print out the table using officeR package
   out.doc <- officer::read_docx()
   out.doc <- flextable::body_add_flextable(x = out.doc, value= myft)
 
@@ -99,6 +117,7 @@ dump_df_mat_to_file <- function(out,
      file.name <- paste0('out_', file.name)
 
   }
+
 
   print(out.doc, target = paste0(print.dir,'/', file.name , '.docx') )
 

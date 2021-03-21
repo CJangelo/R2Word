@@ -12,6 +12,7 @@ dump_df_mat_to_file(
   fontname = "Arial",
   size = 11,
   align = "center",
+  shell.table = FALSE,
   table.title = NULL,
   table.footnote = NULL,
   print.dir = NULL,
@@ -30,6 +31,8 @@ if that number applies to all the numbers; default is 2}
 
 \item{align}{specify the table alignment to pass to \code{flextable}; default is 'center'. See
 ?flextable::align for details}
+
+\item{shell.table}{logical, default is FALSE. Specify if all numeric values should be converted to 'x', as in a shell-table for a report}
 
 \item{table.title}{pass a character vector specifying the table title}
 

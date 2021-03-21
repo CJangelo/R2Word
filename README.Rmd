@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-R2Word, an R package that uses `flextable` functions to quickly and easily creating MS Word tables.
+R2Word, an R package that uses `flextable` functions to quickly and easily create MS Word tables.
 
 ## Description 
 

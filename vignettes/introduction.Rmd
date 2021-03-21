@@ -119,4 +119,20 @@ dump_df_mat_to_file(out = out,
                     print.dir = print.to.this.directory)
 ```
 
+
+Imagine we are preparing a draft version of a report and want to incorporate shell tables. We could simulate code in R, run the analysis, and then print out shell tables that would later be filled in with the observed values. This can be done easily using the `shell.table = TRUE` option:
+
+
+```{r crosstabs shelltable}
+
+dump_df_mat_to_file(out = out, 
+                    table.title = 'Shell table, Cross-tabs, N(%), col sums - Vignette Illustration', 
+                    table.footnote = '**All data simulated',
+                    file.name = 'shell_table_cross_tabs_col_vignette', 
+                    shell.table = T,
+                    print.dir = print.to.this.directory)
+```
+
+
+
 As you can see, with just a couple of extra lines of code, you can move from the output of an R function like `lm()` or `xtabs` to a simple, clean MS Word doc. The `flextable` package is very flexible but for our purposes we just want a standard, easy way to dump our matrix or dataframe out to a MS Word file. 
