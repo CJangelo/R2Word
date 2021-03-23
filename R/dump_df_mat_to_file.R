@@ -95,7 +95,7 @@ dump_df_mat_to_file <- function(out,
  # Align it - 9.17.20: Modified the alignment
   # https://stackoverflow.com/questions/57175351/flextable-autofit-in-a-rmarkdown-to-word-doc-causes-table-to-go-outside-page-mar
   #myft <- autofit(myft)
-  myft <- flextable::set_table_properties(myft, layout = 'autofit')
+  myft <- flextable::set_table_properties(myft, layout = 'autofit', width = 1)
 
 
 
