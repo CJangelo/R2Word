@@ -17,7 +17,7 @@
 #' @param shell.table logical, default is FALSE. Specify if all numeric values should be converted to 'x', as in a shell-table for a report
 #' @param table.title pass a character vector specifying the table title
 #' @param table.footnote pass a character vector specifying a footnote
-#' @param print.dir pass a file path for the file to be printed out to
+#' @param print.dir pass a file path for the file to be printed out to; default is the working directory
 #' @param file.name pass a name for the file
 #'
 #' @return outputs table in a MS Word table and prints table to R Viewer
@@ -95,7 +95,7 @@ dump_df_mat_to_file <- function(out,
  # Align it - 9.17.20: Modified the alignment
   # https://stackoverflow.com/questions/57175351/flextable-autofit-in-a-rmarkdown-to-word-doc-causes-table-to-go-outside-page-mar
   #myft <- autofit(myft)
-  myft <- flextable::set_table_properties(myft, layout = 'autofit', width = 1)
+  myft <- flextable::set_table_properties(myft, layout = 'autofit')
 
 
 
@@ -107,7 +107,7 @@ dump_df_mat_to_file <- function(out,
   if(is.null(print.dir)) {
 
       print.dir <- dirname(getwd())
-      print.dir <- paste0(print.dir, "/TABLES")
+      #print.dir <- paste0(print.dir, "/TABLES")
 
   }
 
