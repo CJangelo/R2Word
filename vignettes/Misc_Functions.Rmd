@@ -1,0 +1,813 @@
+---
+title: "Misc Code Library"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Misc_Functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This is a collection of miscellaneous functions and code that I have found useful over the years. The context of their application varies widely. Please send me code that is applicable here that you want your teammates to have on-hand. Note that the king of R libraries with miscellaneous functions is, of course, the `Hmisc` R package, from Frank Harrell. 
+
+
+
+
+## Compute Statistical Indices from Rodriguez & Reise 2016
+
+
+A function to compute the Explained Common Variance (ECV) and the omega, and the omegaH values in IRT models. To be used in conjunction with the `mirt` R package.
+
+
+```{r ecvt, eval = F}
+
+# Note: mod is an object from the mirt R package
+
+ecv.and.omega.and.H <- function(mod){
+  mat <- summary(mod, verbose = F)
+#ECV
+out <- apply(mat$rotF, 2, function(x) sum(x^2))
+ecv <- out[1] / sum(out)
+
+#omega
+out.G <- sum(mat$rotF[,1])^2
+if(ncol(mat$rotF) > 1){out.S1 <- sum(  apply(mat$rotF[ , 2:ncol(mat$rotF), drop = F], 2, function(x) sum(x)^2 )  ) }else{out.S1 = 0}
+out.h2 <- sum(1-mat$h2)    
+omega <- (out.G + out.S1)/(out.G + out.S1 + out.h2)
+
+#omega h
+omega.h <- out.G/(out.G + out.S1 + out.h2)
+
+# H - construct reliability or construct replicability
+num = (mat$rotF[ , 1])^2
+denom = 1 - (mat$rotF[ , 1])^2
+H = 1 / (  1 + 1/(sum(num/denom))  )
+
+mat.out <- matrix(NA, 1, 5)
+mat.out[1, ] <- c(ecv, H, omega, omega.h, omega.h/omega)
+colnames(mat.out) <- c('ECV', 'H', 'omega', 'omega.h', 'ratio')
+return(mat.out)
+}
+```
+
+
+## Create Data Dictionary from SAS files
+
+
+```{r data_dic, eval = F}
+
+library(haven)
+file.names <- list.files(path = "C:/Users/...")
+file.names <- file.names[file.names != 'formats.sas7bcat']
+
+data.dic <- list() 
+
+
+for(i in file.names){
+  
+  dat <- read_sas(data_file = paste0(i))
+  tmp <- cbind(lapply(dat, function(x) attributes(x)$label)) # DESCRIPTIONS OF VARIABLES
+  data.dic[[i]] <- tmp
+  
+}
+    
+# Seared data:
+file.names <- list.files(path = "C:/Users/...")
+for(i in file.names){
+  
+  dat <- read_sas(data_file = paste0(i))
+  tmp <- cbind(lapply(dat, function(x) attributes(x)$label)) # DESCRIPTIONS OF VARIABLES
+  data.dic[[i]] <- tmp
+  
+}
+
+
+# Search the labels/attributes collected in the data dictionary
+lapply(data.dic, function(x) which(grepl('Born', x, ignore.case = T)))
+  unlist(lapply(data.dic, function(x) which(grepl('Born', x, ignore.case = T))))
+
+# Search the variable names collected in the data dictionary
+lapply(data.dic, function(x) which(grepl('dob', row.names(x), ignore.case = T)))
+  unlist(lapply(data.dic, function(x) which(grepl('dob', row.names(x), ignore.case = T))))
+
+# Search labels/attributes in a particular dataset:
+grep('Taf', cbind(lapply(sad2, function(x) attributes(x)$label)), ignore.case = T, value = T) 
+
+# Search the variables names in a particular dataset:
+colnames(sad2)[grep('Taf', cbind(lapply(sad2, function(x) attributes(x)$label)), ignore.case = T, value = F)]
+
+
+
+```
+
+
+
+## Capitalize the first letter of every word in a string
+
+https://stat.ethz.ch/R-manual/R-devel/library/base/html/chartr.html
+```{r cap, eval = F}
+
+capwords <- function(s, strict = FALSE) {
+    cap <- function(s) paste(toupper(substring(s, 1, 1)),
+                  {s <- substring(s, 2); if(strict) tolower(s) else s},
+                             sep = "", collapse = " " )
+    sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
+}
+
+```
+
+
+# RMSEA Power Analysis
+
+## RMSEA Theoretical Power Computation
+
+This function computes the theoretical power - this is the heart of the methodological advancement. 
+
+```{r rmsea1, eval = F}
+theoretical.power <- function(type, alpha, nlow, nhigh, step, RMSEA0, RMSEA1, number.of.items, categories.per.item){
+  
+  P = number.of.items
+  K = categories.per.item
+
+  
+  if(type == 'C2'){
+
+    M1 = P*(K-1) 
+    M2 = ncol(combn(P, 2)) 
+    Q = 1*P + P*(K-1) 
+    DF = M1 + M2 - Q 
+
+  }
+  
+  if(type == 'M2*'){
+
+    M1 = P
+    M2 = ncol(combn(P, 2))
+    Q = 1*P + P*(K-1) 
+    DF = M1 + M2 - Q   
+    
+    
+  }
+  
+  if(!(type %in% c('C2', 'M2*'))) { print('What statistic do you want me to fit, dude? Either C2 or M2*, pick one') }
+  
+  
+  Power <- vector()
+  for(N in seq(nlow, nhigh, by = step)){
+
+    NCP0 = (N-1)*DF*(RMSEA0^2)
+    NCP1 = (N-1)*DF*(RMSEA1^2)
+
+    CVAL = qchisq(1 - alpha, DF, NCP0)
+    tmp = 1 - pchisq(CVAL, DF, NCP1)
+    Power <- rbind(Power, tmp)
+
+  }
+  
+  out <- cbind(seq(nlow, nhigh, by = step), DF, Power)
+  colnames(out) <- c('Sample Size', 'DF', 'Power')  
+  return(out)
+  
+}#end theoretical power function
+  
+  
+
+
+```
+
+## RMSEA Power Estimation 
+Based on the research we presented at conferences. There's a manuscript somewhere. 
+
+```{r rmsea, eval = F}
+# Close fit:
+RMSEA0 <- 0.00  
+RMSEA1 <- 0.05
+# Not-close fit:
+RMSEA0 <- 0.05
+RMSEA1 <- 0.10
+alpha <- 0.05
+nlow <- 25
+nhigh <- 400
+step <- 25
+test.lengths <- c(6, 11, 13)
+categories.per.item <- 5
+type = 'C2'
+print.digits = "%.2f"
+##########
+
+
+estimate_power <- function(type = NULL,  alpha = 0.05, nlow = 25, nhigh = 500, step = 25, 
+                                RMSEA0 = NULL, RMSEA1 = NULL, 
+                                test.lengths = NULL, categories.per.item = NULL, 
+                                print.digits = "%.2f", 
+                                output.directory = NULL){
+     
+# Check inputs:  
+  if (RMSEA0 == 0 & RMSEA1 > 0) {
+    fit <- 'Test of Exact Fit'
+    print(fit)
+  } else {
+    if (RMSEA0 > 0 & RMSEA1 > RMSEA0) {
+      fit <- 'Test of Not-Close Fit'
+      print(fit)
+    } else { break('What kind of test is this? Check your RMSEA!')}}
+# end check of inputs    
+  
+   out <- vector()
+   
+for(j in test.lengths) {
+
+      power_theoretical <- theoretical.power(type = type, alpha = alpha, nlow=nlow, nhigh=nhigh, step=step, 
+                                                RMSEA0 = RMSEA0, RMSEA1 = RMSEA1 , 
+                                                number.of.items = j, categories.per.item = categories.per.item)
+
+      out <- cbind(out, power_theoretical[ , 'Power'])
+
+}
+      
+# organize output:
+colnames(out) <- paste0( 'Items_', test.lengths)
+est.power <- data.frame('Sample_Size' = power_theoretical[ , 'Sample Size'], out)
+rownames(est.power) <- paste0(type, ' ', fit, ' ', est.power$Sample_Size)
+
+
+# PLOT  
+png(file = paste0('test_RMSEA Power Analysis ', type, ' ', fit, '.png'))
+
+    tests <- paste0('Items_', test.lengths)
+    test.colors <- seq(1, length(tests))
+    par(mar=c(5,4,2,2)+0.1)
+    plot( seq(nlow,nhigh, by = step), y = NULL, ylim = c(0,1), xaxt = 'n', xlim = c(0, nhigh), 
+              xlab = 'Sample Size', ylab = 'Power')
+    axis(side = 1, at = seq(0, nhigh, by = 50))
+    i = 1
+
+  for(plot.test in tests){
+  
+      y.axis <- est.power[ , plot.test]
+      points( seq(nlow,nhigh, by = step), y = y.axis, ylim = c(0,1), xaxt = 'n', xlim = c(0, nhigh), 
+                xlab = 'Sample Size', ylab = 'Power', lwd = 2, lty = 1, col = test.colors[i])
+      lines( seq(nlow,nhigh, by = step), y.axis, lwd = 2, col = test.colors[i])
+      i = i + 1
+    }
+
+    
+    legend('bottomright', title = paste0(type, ' ', fit ), legend = tests, 
+              col=test.colors, lty=1, lwd = 2, cex = 1)
+    abline(h = .8, lty = 2) # put a dotted line at power = .80
+
+dev.off() # End plot
+
+
+
+# Output Tables:
+out <- est.power
+out[  , grep('Items', colnames(out))] <- 
+            apply(out[  , grep('Items', colnames(out)), drop = F], 2,  function(x)  sprintf(fmt = print.digits, x))
+
+colnames(out) <- c('Sample Size', paste0(test.lengths, ' Items'))
+if(is.null(output.directory)) { 
+  output.directory <- 'R1 Code Library/power_curves.doc'
+}
+
+return(est.power)
+
+} # end estimate_power()
+
+estimate_power(type = 'C2', RMSEA0 = 0.05, RMSEA1 = 0.08, test.lengths = test.lengths, categories.per.item = 5) 
+
+
+
+```
+
+
+## Write out rtf tables
+
+Example of how to write out R tables to MS Word .doc files
+
+```{r rtf, eval = F}
+
+library(rtf)
+rtf<-RTF("C:/Users/.../demo_table.doc",  width=8.5, height=11, font.size=14, omi=c(1,1,1,1))
+addTable(rtf,  out, font.size= 12, row.names=F, NA.string="", header.col.justify = 'C', col.justify='C', col.widths=   c(rep(1, ncol(out))))
+done(rtf)
+
+```
+
+
+## Create tables with MMRM output using `nlme` R package output
+
+
+```{r mmrm_table, eval = F}
+
+mmrm_table <- function(mod1.delta, 
+                       add.baseline.row = F, 
+                       n = NULL, 
+                       decimal.est = 2, decimal.p = 3, 
+                       var.names = NULL, 
+                       output.flextable = F){
+  
+
+  library(nlme)
+  out <- intervals(mod1.delta)
+  out <- as.data.frame(out$coef)
+  out$label <- rownames(out)
+  tmp <- as.data.frame(summary(mod1.delta)$tTable) 
+  out$p <- tmp$p
+  out$lower <- sprintf(paste0('%.', decimal.est, 'f'),  out$lower)
+  out$upper <- sprintf(paste0('%.', decimal.est, 'f'),  out$upper)
+  out$est  <- sprintf(paste0('%.', decimal.est, 'f'),  out$est)
+  out$p  <- sprintf(paste0('%.', decimal.p, 'f'),  out$p)
+  out$conf.int <- paste0('(', out$lower, ', ', out$upper, ')')
+  
+  out <- out[ , c('label', 'est', 'conf.int', 'p')]
+  rownames(out) <- NULL
+  colnames(out) <- c('Variable', 'Estimate', 'Confidence Interval', 'P-value')
+  
+  
+  # Want to add this row for baseline? 
+  if(add.baseline.row != F) {
+    
+    out <- rbind(
+      rep('-', ncol(out)), 
+      out)
+    
+  }
+
+  # Add the sample sizes? have to pass them:
+  if(!is.null(n)) { 
+    
+    out[ , 'n'] <- n
+    out <- out[ , c('Variable', 'n' , 'Estimate', 'Confidence Interval', 'P-value')]
+    
+  }
+  
+  # If you want to write the names of the variables, this is easiest way:
+  if(!is.null(var.names)) {
+    out$Variable <- var.names
+  }
+  
+  
+  if(output.flextable == T){
+    
+    library(flextable)
+    library(officer)
+
+    myft <- flextable(out)
+    # Set the font to Arial:
+    myft <- font(myft, fontname = "Arial", part = 'all')
+    # Make header bold:
+    myft <- bold(myft, part = 'header')
+    # Align it
+    myft <- autofit(myft)
+    # Center:
+    myft <- align(myft, align = "center", part = "all" )
+    
+    out <- myft
+  }
+  
+
+  
+  return(out)
+  
+  
+} # end function
+
+  
+
+```
+
+
+## Create tables with MMRM marginal means using `emmeans` R package output
+
+``` {r emmeans, eval = F}
+#  
+ decimal.est = 2; decimal.p = 3; variables <- c('visit', 'SUBGRP_CRS'); variable.labels <- c('Visit', 'Subgroup')
+ #decimal.est = 2; decimal.p = 3; variables <- NULL; variable.labels <- NULL
+
+emmeans_table <- function(mod.emms, variables = NULL, variable.labels = NULL, var.names = NULL,
+                       add.baseline.row = F, 
+                       n = NULL, 
+                       decimal.est = 2, decimal.p = 3, 
+                       output.flextable = F){
+  
+
+  library(nlme)
+  library(emmeans)
+  out <- as.data.frame(confint(mod.emms))
+  out$p <- test(mod.emms)$p
+
+  out$lower <- sprintf(paste0('%.', decimal.est, 'f'),  out$lower.CL)
+  out$upper <- sprintf(paste0('%.', decimal.est, 'f'),  out$upper.CL)
+  out$est  <- sprintf(paste0('%.', decimal.est, 'f'),  out$emmean)
+  out$p  <- sprintf(paste0('%.', decimal.p, 'f'),  out$p)
+  out$conf.int <- paste0('(', out$lower, ', ', out$upper, ')')
+  out[ , sapply(out, is.factor)] <- as.character(out[ , sapply(out, is.factor)])
+
+  out <- out[ , c(variables, 'est', 'conf.int', 'p')]
+  rownames(out) <- NULL
+  out[ , sapply(out, is.factor)] <- as.character(out[ , sapply(out, is.factor)])
+  colnames(out) <- c(variable.labels, 'Estimate', 'Confidence Interval', 'P-value')
+
+  # Want to add this row for baseline? 
+  if(add.baseline.row != F) {
+    
+    out <- rbind(
+      rep('-', ncol(out)), 
+      out[out[ , 'Subgroup'] == 0, ],
+      rep('-', ncol(out)), 
+      out[out[ , 'Subgroup'] == 1, ]      
+      )
+    
+  }
+
+  # Add the sample sizes? have to pass them:
+  if(!is.null(n)) { 
+    
+    out$n <- n
+    out <- out[ , c(variable.labels, 'n' , 'Estimate', 'Confidence Interval', 'P-value')]
+    
+  }
+  
+  # If you want to write the names of the variables, this is easiest way:
+  if(!is.null(var.names)) {
+    out[, variables] <- var.names
+  }
+  
+  
+  if(output.flextable == T){
+    
+    library(flextable)
+    library(officer)
+
+    myft <- flextable(out)
+    # Set the font to Arial:
+    myft <- font(myft, fontname = "Arial", part = 'all')
+    # Make header bold:
+    myft <- bold(myft, part = 'header')
+    # Align it
+    myft <- autofit(myft)
+    # Center:
+    myft <- align(myft, align = "center", part = "all" )
+    
+    out <- myft
+  }
+  
+
+  
+  return(out)
+  
+  
+} # end function
+
+```
+
+
+## Site Outliers - Cook's D
+
+```{r outliers, eval = F}
+
+library(stringr)
+library(lme4)
+library(influence.ME)
+
+
+# Random Effects
+# Plot residuals
+mod.random <- glmer(TWOHR_PAIN_FREED ~ TXA +  (1|SITEID), nAGQ = 9, family = 'binomial', data = dat)
+
+
+############
+# SITE LEVEL
+# Criteria  - a site needs to be twice as influential as other sites to be considered for exclusion
+
+
+dfbetas.mm.obs <- influence.ME:::influence(mod.random, group = 'SITEID')
+
+
+number.sites <- length(unique(dat$SITEID))
+
+
+
+ CooksD <- vector()
+
+for(i in 1:number.sites){
+
+    CooksD <- c(CooksD, (dfbetas.mm.obs$or.fixed[ , 'TXA'] - dfbetas.mm.obs$alt.fixed[i, 'TXA']) %*%
+                            solve(dfbetas.mm.obs$or.vcov)[ 'TXA', 'TXA'] %*%
+                              t(dfbetas.mm.obs$or.fixed[ , 'TXA'] - dfbetas.mm.obs$alt.fixed[i, 'TXA']) )
+
+    
+    
+}
+
+
+ 
+names(CooksD) <- unique(dat$SITEID)
+sort(CooksD, decreasing = T)[1] >  2*sort(CooksD, decreasing = T)[2]
+
+# Plot for slides
+    plot(CooksD, ylab = paste0('Cook', "'",'s D'), ylim = c(0, 1), xlab = 'Site', main = paste0('Site Outliers') )
+    points(  which(CooksD > 0.5)    , CooksD[which(CooksD > 0.5)], col = 'red', pch = 19 )
+    text(which(CooksD > 0.5)+3, CooksD[which(CooksD > 0.5)], '609')
+
+
+
+
+covratio   <- vector()
+
+for(i in 1:number.sites){
+
+covratio <- c(covratio,
+                  dfbetas.mm.obs$alt.vcov[[i]][ 'TXA', 'TXA'] /
+                    dfbetas.mm.obs$or.vcov[ 'TXA', 'TXA']
+)
+   
+}
+
+
+
+
+sort(covratio, decreasing = T)[1] > 2*sort(covratio, decreasing = T)[2]
+
+names(covratio) <- unique(dat$SITEID)
+all( names(covratio) == row.names(dfbetas.mm.obs$alt.test) )
+
+
+# Plot for slides
+    plot(covratio, ylab = 'Covratio', xlab = 'Site', ylim = c(1, 1.10), main = paste0('Site Outliers') )
+    
+    #Color the biggest outlier:
+    points(  which.max(covratio)    , covratio[which.max(covratio)], col = 'red', pch = 19 )
+        text(which.max(covratio) + 3, covratio[which.max(covratio)], names(covratio)[which.max(covratio)])
+
+        
+
+
+```
+
+
+## Multiplot Function
+
+This is pretty old, so it's not clear how it works in relation to the gridArrange function. 
+
+```{r plots, eval = F}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col), na.print = " ")
+    }
+  }
+}
+
+```
+
+## Plot IRT Test Info & Item Info Curves (ICC)
+
+used in conjunction with the `mirt` R package
+
+```{r irt_plot_1, eval = F}
+
+
+# Plots
+source("C:/Users/ciaconangelo/Documents/Code Library/multiplot function.R")
+
+# Find the test information (for a bifactor)
+# Number of items:
+number.items = 9
+
+
+test.info <- vector()
+for(it in 1:number.items){
+  extr <- extract.item(mod, item = it)
+  tmp <- iteminfo(extr,Theta = cbind(seq(-3, 3, length.out = 120), 0), degrees = c(0, 90))  #) > max.info){ max.info <- max(iteminfo(extr, Theta = cbind(seq(-3, 3, length.out = 120), 0), degrees = c(0, 90)))}
+  test.info <- cbind(test.info, tmp)
+}
+test.info <- rowSums(test.info)
+plot(test.info)
+df1 <- data.frame('theta' = seq(-3, 3, length.out = 120), 'info'= test.info)
+
+
+# for DIF, you have multiplegroups, do the info for a single group:
+#  extract.item(mod, item = it, group = 1 )
+# Pull it group at a time
+
+
+
+
+#Find the maximum information:
+max.info <- 0
+for(it in 1:number.items){
+  extr <- extract.item(mod, item = it)
+  if(max(iteminfo(extr,Theta = cbind(seq(-3, 3, length.out = 120), 0), degrees = c(0, 90))) > max.info){ max.info <- max(iteminfo(extr, Theta = cbind(seq(-3, 3, length.out = 120), 0), degrees = c(0, 90)))}
+}
+
+for(it in 1:number.items){
+  extr <- extract.item(mod, item = it)
+  info <- iteminfo(extr, Theta = cbind(seq(-3, 3, length.out = 120), 0), degrees = c(0, 90))
+  df1 <- data.frame('theta' = seq(-3, 3, length.out = 120), 'info'=info)
+  plot.info <-   ggplot(data = df1, aes(x = theta, y = info)) +
+    geom_line()+ 
+    coord_cartesian(ylim = c(0, max.info), xlim = c(-3, 3)) +
+    labs(title = paste0(colnames(dat)[it]), x = expression(theta), y = 'Information') +
+    theme(plot.title = element_text(hjust = 0.5)) 
+  
+  trace <- probtrace(extr, Theta = cbind(seq(-2, 2, length.out = 120), 0))
+  df2 <- melt(trace)
+  df2$theta <- seq(-3, 3, length.out = 120)
+  plot.icc <- ggplot(data=df2,
+                     aes(x=theta, y=value, colour=Var2)) +
+    geom_line() +
+    coord_cartesian(ylim = c(0,1)) +
+    labs(title = paste0(colnames(dat)[it]), x = expression(theta), y = 'Probability', color = 'Category') +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position=c(.5, .95), legend.direction = 'horizontal') +
+    scale_color_manual(labels = c(paste0(min(dat[,it], na.rm = T):max(dat[,it], na.rm = T))), values = c(paste0(min(dat[,it], na.rm = T):max(dat[,it], na.rm =T) + 1))) 
+
+  
+  multiplot(plot.info, plot.icc, cols = 2)
+  
+}
+
+
+```
+
+
+
+## Multidimensional IRT plots
+
+Multiple Dimension plots of Test info, Item info, and ICC
+
+```{r irt_plots2, eval = F}
+
+# Call your mirt model 'mod'
+item.responses <- df.cc.ds[ , grep('FAB', colnames(df) )[-17]]
+number.items = 16
+theta.grid <- matrix(seq(-3, 3, length.out = 120), 120, ncol = 2)
+item.labels <- item.symptoms
+item.range <- apply(item.responses, 2, range, na.rm = T)
+item.range <- apply(item.range, 2, function(x) seq(x[1], x[2]) )
+source("C:/Users/ciaconangelo/Documents/R1 Code Library/multiplot function.R")
+
+
+test.info <- vector()
+for(it in c(1:8) ){
+  extr <- extract.item(mod, item = it)  
+  tmp <- iteminfo(extr,Theta = theta.grid, degrees = c(0, 90)) # First dimension only!
+  test.info <- cbind(test.info, tmp)
+}
+test.info <- rowSums(test.info)
+
+
+test.info2 <- vector()
+for(it in c(5, 9:16) ){
+  extr <- extract.item(mod, item = it)  
+  tmp <- iteminfo(extr,Theta = theta.grid, degrees = c(90, 0))  #Second dimension only! 
+  #Phil: "I think you want degrees = c(90, 0, 0). That will drop the first dimension and include all of the 2nd and 3rd."
+  test.info2 <- cbind(test.info2, tmp)
+}
+test.info2 <- rowSums(test.info2)
+df.test <- data.frame('theta' = theta.grid[,1], 'info1'= test.info, 'info2' = test.info2)
+
+plot(df.test$theta, df.test$info1, type = 'l', col = 'blue', ylab = 'Information', xlab = expression(theta), lwd = 2.5, main = 'Subdomain 1')
+plot(df.test$theta, df.test$info2, type = 'l', col = 'blue', ylab = 'Information', xlab = expression(theta), lwd = 2.5, main = 'Subdomain 2')
+
+
+
+#Find the maximum information:
+max.info <- 0
+for(it in 1:number.items){
+  extr <- extract.item(mod, item = it)
+  if(max(iteminfo(extr,Theta = theta.grid, degrees = c(90,0)) > max.info)){ max.info <- max(iteminfo(extr, Theta = theta.grid, degrees = c(90,0)))}
+  if(max(iteminfo(extr,Theta = theta.grid, degrees = c(0,90)) > max.info)){ max.info <- max(iteminfo(extr, Theta = theta.grid, degrees = c(0,90)))}
+}
+
+max.info 
+source("C:/Users/ciaconangelo/Documents/R1 Code Library/multiplot function.R")
+
+for(it in 1:16){
+  
+  extr <- extract.item(mod, item = it)
+  info <- iteminfo(extr, Theta = theta.grid, degrees = c(0, 90))
+  df1 <- data.frame('theta' = seq(-3, 3, length.out = 120), 'info'=info)
+  
+  plot.info <-   ggplot(data = df1, aes(x = theta, y = info)) +
+      geom_line() + 
+      coord_cartesian(ylim = c(0, max.info), xlim = c(-3, 3)) +
+      labs(title = paste0(item.labels[it]), x = expression(theta), y = 'Information') +
+      theme(plot.title = element_text(hjust = 0.5)) 
+  
+  
+  trace <- probtrace(extr, Theta = theta.grid)
+  df2 <- melt(trace)
+  df2$theta <- seq(-3, 3, length.out = 120)
+   
+  plot.icc <- ggplot(data=df2,
+      aes(x=theta, y=value, colour=Var2)) +
+      geom_line() +
+      coord_cartesian(ylim = c(0,1)) +
+      labs(title = paste0(item.labels[it]), x = expression(theta), y = 'Probability', color = 'Category') +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(legend.position=c(.5, .95), legend.direction = 'horizontal') +
+      scale_color_manual(labels = paste0(item.range[, it]), values = paste0(item.range[,it] + 1))  
+  
+  
+  multiplot(plot.info, plot.icc, cols = 2)
+  
+}
+
+
+
+for(it in 1:8){
+  extr <- extract.item(mod, item = it)
+  info <- iteminfo(extr, Theta = cbind(seq(-3, 3, length.out = 120), 0), degrees = c(0, 90))
+  df1 <- data.frame('theta' = seq(-3, 3, length.out = 120), 'info'=info)
+  plot.info <-   ggplot(data = df1, aes(x = theta, y = info)) +
+    geom_line() + 
+    coord_cartesian(ylim = c(0, max.info), xlim = c(-3, 3)) +
+    labs(title = paste0(item.labels[it]), x = expression(theta), y = 'Information') +
+    theme(plot.title = element_text(hjust = 0.5)) 
+  
+  
+  trace <- probtrace(extr, Theta = cbind(seq(-2, 2, length.out = 120), 0))
+  df2 <- melt(trace)
+  df2$theta <- seq(-3, 3, length.out = 120)
+   plot.icc <- ggplot(data=df2,
+                     aes(x=theta, y=value, colour=Var2)) +
+    geom_line() +
+    coord_cartesian(ylim = c(0,1)) +
+    labs(title = paste0(item.labels[it]), x = expression(theta), y = 'Probability', color = 'Category') +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position=c(.5, .95), legend.direction = 'horizontal') +
+    scale_color_manual(labels = paste0(item.range[, it]), values = paste0(item.range[,it] + 1))  
+  
+  
+  multiplot(plot.info, plot.icc, cols = 2)
+  
+}
+
+
+
+for(it in c(5, 9:16) ){
+  extr <- extract.item(mod, item = it)
+  info <- iteminfo(extr, Theta = theta.grid, degrees = c(90, 0))
+  df1 <- data.frame('theta' = seq(-3, 3, length.out = 120), 'info'=info)
+  plot.info <-   ggplot(data = df1, aes(x = theta, y = info)) +
+    geom_line() + 
+    coord_cartesian(ylim = c(0, max.info), xlim = c(-3, 3)) +
+    labs(title = paste0(item.labels[it]), x = expression(theta), y = 'Information') +
+    theme(plot.title = element_text(hjust = 0.5)) 
+  
+  
+  trace <- probtrace(extr, Theta = theta.grid)
+  df2 <- melt(trace)
+  df2$theta <- seq(-3, 3, length.out = 120)
+   plot.icc <- ggplot(data=df2,
+                     aes(x=theta, y=value, colour=Var2)) +
+    geom_line() +
+    coord_cartesian(ylim = c(0,1)) +
+    labs(title = paste0(item.labels[it]), x = expression(theta), y = 'Probability', color = 'Category') +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    theme(legend.position=c(.5, .95), legend.direction = 'horizontal') +
+    scale_color_manual(labels = paste0(item.range[, it]), values = paste0(item.range[,it] + 1))  
+  
+  
+  multiplot(plot.info, plot.icc, cols = 2)
+  
+}
+
+```

@@ -38,7 +38,7 @@ if that number applies to all the numbers; default is 2}
 
 \item{table.footnote}{pass a character vector specifying a footnote}
 
-\item{print.dir}{pass a file path for the file to be printed out to}
+\item{print.dir}{pass a file path for the file to be printed out to; default is the working directory}
 
 \item{file.name}{pass a name for the file}
 }
