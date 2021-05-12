@@ -31,7 +31,7 @@ dump_df_mat_to_file <- function(out,
                                 fontname = 'Arial',  # pass to flextable
                                 size = 11,  #pass to flextable
                                 align = 'center', # pass to flextable
-                                shell.table = FALSE,
+                                #shell.table = FALSE,
                                 table.title = NULL,
                                 table.footnote = NULL,
                                 print.dir = NULL,
@@ -39,30 +39,13 @@ dump_df_mat_to_file <- function(out,
 
 
 
-  out <- round_numbers(out, cols = cols, decimals = decimals, NA.string = NA.string)
+  out <- R2Word::round_numbers(out,
+                               cols = cols,
+                               decimals = decimals,
+                               NA.string = NA.string)
 
 
-  if (shell.table) {
 
-    out.shell <- out
-    for (int.val in 0:9) {
-      for (cc in colnames(out.shell)) {
-
-        if (all(grepl('(', out.shell[, cc], fixed = T))) {
-
-          out.shell[, cc] <- gsub(pattern = paste0(int.val),
-                                replace = 'x',
-                                x = out.shell[, cc])
-        }
-      }
-    }
-
-    out <- out.shell
-
-  } #end shell table option
-
-
-# --------------------------------------------------------------------------------------------
   myft <- flextable::flextable(out)
     # Make header bold:
   myft <- flextable::bold(myft, part = 'header')
