@@ -3,3 +3,4 @@
 export(create_tables)
 export(dump_df_mat_to_file)
 export(round_numbers)
+export(shell_table)

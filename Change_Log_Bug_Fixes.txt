@@ -1,0 +1,9 @@
+#-------------------------------------------
+CHANGE LOG (BUGS AND OTHER ALTERATIONS)
+
+date: 5.11
+added function "shell_table"
+deleted option "shell.table = TRUE" from the dump_df_ function
+modified Vignettes to reflect that
+
+
