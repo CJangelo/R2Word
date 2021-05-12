@@ -120,16 +120,18 @@ dump_df_mat_to_file(out = out,
 ```
 
 
-Imagine we are preparing a draft version of a report and want to incorporate shell tables. We could simulate code in R, run the analysis, and then print out shell tables that would later be filled in with the observed values. This can be done easily using the `shell.table = TRUE` option:
+Imagine we are preparing a draft version of a report and want to incorporate shell tables. We could simulate code in R, run the analysis, and then print out shell tables that would later be filled in with the observed values. This can be done easily using the `shell_tables` function:
 
 
 ```{r crosstabs shelltable}
+
+out <- shell_table(out = out, cols = 2:5)
+# specify that we want columns 2 thru 5 to have all numbers converted to 'x'
 
 dump_df_mat_to_file(out = out, 
                     table.title = 'Shell table, Cross-tabs, N(%), col sums - Vignette Illustration', 
                     table.footnote = '**All data simulated',
                     file.name = 'shell_table_cross_tabs_col_vignette', 
-                    shell.table = T,
                     print.dir = print.to.this.directory)
 ```
 
