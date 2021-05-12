@@ -12,7 +12,6 @@ dump_df_mat_to_file(
   fontname = "Arial",
   size = 11,
   align = "center",
-  shell.table = FALSE,
   table.title = NULL,
   table.footnote = NULL,
   print.dir = NULL,
@@ -32,8 +31,6 @@ if that number applies to all the numbers; default is 2}
 \item{align}{specify the table alignment to pass to \code{flextable}; default is 'center'. See
 ?flextable::align for details}
 
-\item{shell.table}{logical, default is FALSE. Specify if all numeric values should be converted to 'x', as in a shell-table for a report}
-
 \item{table.title}{pass a character vector specifying the table title}
 
 \item{table.footnote}{pass a character vector specifying a footnote}
@@ -41,6 +38,8 @@ if that number applies to all the numbers; default is 2}
 \item{print.dir}{pass a file path for the file to be printed out to; default is the working directory}
 
 \item{file.name}{pass a name for the file}
+
+\item{shell.table}{logical, default is FALSE. Specify if all numeric values should be converted to 'x', as in a shell-table for a report}
 }
 \value{
 outputs table in a MS Word table and prints table to R Viewer
