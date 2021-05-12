@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Dump a dataframe/matrix to MS Word file — dump_df_mat_to_file • R2Word</title>
+<title>Create a Function to make shell tables — shell_table • R2Word</title>
 
 
 <!-- jquery -->
@@ -39,12 +39,8 @@
 
 
 
-<meta property="og:title" content="Dump a dataframe/matrix to MS Word file — dump_df_mat_to_file" />
-<meta property="og:description" content="This function takes a dataframe or matrix and dumps it out as a table in a MS Word file. The
-table will be printed in the R Viewer as well. The defaults
-are such that minimal fussing with the R object is required in order to create
-the MS Word table. This was designed to streamline the process of moving from completed analysis
-to output." />
+<meta property="og:title" content="Create a Function to make shell tables — shell_table" />
+<meta property="og:description" content="Create a Function to make shell tables" />
 
 
 
@@ -122,83 +118,42 @@ to output." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Dump a dataframe/matrix to MS Word file</h1>
+    <h1>Create a Function to make shell tables</h1>
     
-    <div class="hidden name"><code>dump_df_mat_to_file.Rd</code></div>
+    <div class="hidden name"><code>shell_table.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function takes a dataframe or matrix and dumps it out as a table in a MS Word file. The
-table will be printed in the R Viewer as well. The defaults
-are such that minimal fussing with the R object is required in order to create
-the MS Word table. This was designed to streamline the process of moving from completed analysis
-to output.</p>
+    <p>Create a Function to make shell tables</p>
     </div>
 
-    <pre class="usage"><span class='fu'>dump_df_mat_to_file</span><span class='op'>(</span>
-  <span class='va'>out</span>,
-  cols <span class='op'>=</span> <span class='cn'>NULL</span>,
-  decimals <span class='op'>=</span> <span class='fl'>2</span>,
-  NA.string <span class='op'>=</span> <span class='cn'>NA</span>,
-  fontname <span class='op'>=</span> <span class='st'>"Arial"</span>,
-  size <span class='op'>=</span> <span class='fl'>11</span>,
-  align <span class='op'>=</span> <span class='st'>"center"</span>,
-  table.title <span class='op'>=</span> <span class='cn'>NULL</span>,
-  table.footnote <span class='op'>=</span> <span class='cn'>NULL</span>,
-  print.dir <span class='op'>=</span> <span class='cn'>NULL</span>,
-  file.name <span class='op'>=</span> <span class='cn'>NULL</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>shell_table</span><span class='op'>(</span>out <span class='op'>=</span> <span class='cn'>NULL</span>, cols <span class='op'>=</span> <span class='cn'>NULL</span>, decimals <span class='op'>=</span> <span class='fl'>2</span>, NA.string <span class='op'>=</span> <span class='cn'>NA</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
+      <th>cols</th>
+      <td><p>specify which columns of the dataframe you want the numbers
+converted to x</p></td>
+    </tr>
+    <tr>
       <th>decimals</th>
-      <td><p>a vector of the number of decimals to round each numeric column to, can also be a scalar
-if that number applies to all the numbers; default is 2</p></td>
+      <td><p>how many xx to add</p></td>
     </tr>
     <tr>
       <th>NA.string</th>
       <td><p>determines how to print out missing (i.e., NA) strings; default is blank</p></td>
     </tr>
     <tr>
-      <th>fontname</th>
-      <td><p>specify the font to pass to <code>flextable</code>; default is 'Arial'</p></td>
-    </tr>
-    <tr>
-      <th>size</th>
-      <td><p>specify the font size to pass to <code>flextable</code>; default is 11.</p></td>
-    </tr>
-    <tr>
-      <th>align</th>
-      <td><p>specify the table alignment to pass to <code>flextable</code>; default is 'center'. See
-?flextable::align for details</p></td>
-    </tr>
-    <tr>
-      <th>table.title</th>
-      <td><p>pass a character vector specifying the table title</p></td>
-    </tr>
-    <tr>
-      <th>table.footnote</th>
-      <td><p>pass a character vector specifying a footnote</p></td>
-    </tr>
-    <tr>
-      <th>print.dir</th>
-      <td><p>pass a file path for the file to be printed out to; default is the working directory</p></td>
-    </tr>
-    <tr>
-      <th>file.name</th>
-      <td><p>pass a name for the file</p></td>
-    </tr>
-    <tr>
-      <th>shell.table</th>
-      <td><p>logical, default is FALSE. Specify if all numeric values should be converted to 'x', as in a shell-table for a report</p></td>
+      <th>numeric.tables</th>
+      <td><p>pass the data frame</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>outputs table in a MS Word table and prints table to R Viewer</p>
+    <p>outputs dataframe with character vectors</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
