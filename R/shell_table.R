@@ -1,10 +1,11 @@
 #' Create a Function to make shell tables
-#' @param numeric.tables pass the data frame
+#' @param numeric.tables pass the data frame; if pass a matrix, it will be converted to a dataframe
 #' @param cols specify which columns of the dataframe you want the numbers
-#' converted to x
+#' converted to x; default is convert all numbers in all columns to x
 #' @param decimals how many xx to add
-#' @param NA.string  determines how to print out missing (i.e., NA) strings; default is blank
-#' @return outputs dataframe with character vectors
+#' @param NA.string  determines how to print out missing (i.e., NA) strings;
+#' default is blank
+#' @return outputs dataframe with character variables
 #'
 #' @export
 

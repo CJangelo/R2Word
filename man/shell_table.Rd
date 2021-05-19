@@ -8,16 +8,17 @@ shell_table(out = NULL, cols = NULL, decimals = 2, NA.string = NA)
 }
 \arguments{
 \item{cols}{specify which columns of the dataframe you want the numbers
-converted to x}
+converted to x; default is convert all numbers in all columns to x}
 
 \item{decimals}{how many xx to add}
 
-\item{NA.string}{determines how to print out missing (i.e., NA) strings; default is blank}
+\item{NA.string}{determines how to print out missing (i.e., NA) strings;
+default is blank}
 
-\item{numeric.tables}{pass the data frame}
+\item{numeric.tables}{pass the data frame; if pass a matrix, it will be converted to a dataframe}
 }
 \value{
-outputs dataframe with character vectors
+outputs dataframe with character variables
 }
 \description{
 Create a Function to make shell tables
