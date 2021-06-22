@@ -20,7 +20,8 @@ create_tables(
 )
 }
 \arguments{
-\item{freq.table}{pass the frequency table to the function}
+\item{freq.table}{pass the frequency table to the function. Must be a matrix
+or a dataframe.}
 
 \item{percent.table}{pass the table of percentages; default is to compute this in the function}
 
