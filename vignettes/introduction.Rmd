@@ -14,6 +14,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r dir, echo = F, eval = T}
+print.to.this.directory = "C:/Users/ciaconangelo/Documents"
+```
+
 
 Here is an illustration of how to use these functions to your advantage. 
 
@@ -48,8 +52,64 @@ XB <- X %*% Beta
 dat$XB <- as.vector(XB)
 error <- rnorm(n = N, mean = 0, sd = sqrt(sigma2))
 dat$Y <- dat$XB + error
+
+# MCAR drop-out
+dat$Y_mcar <- dat$Y
+dat$Y_mcar[sample(x = 1:N, size = .4*N, replace = F)] <- NA
+
+str(dat)
 ```
 
+## Descriptive Statistics
+
+Compute some descriptive statistics using the `aggregate()` function. If you 
+want to pass multiple functions, use the `do.call` function to create a 
+dataframe. Use the `sprintf()` function instead of `round()` to create a 
+nicely formatted output. 
+
+This is all basic R functionality. Then use the `dump_df_mat_to_file()` function
+from this R package to write out the table. 
+
+```{r Desc_stat, eval = T}
+
+out <- do.call(data.frame, stats::aggregate(Y ~ Group,
+        FUN = function(x) c(sum(!is.na(x)),
+                            sprintf("%.2f (%.2f)", mean(x, na.rm = T),
+                            sd(x, na.rm = T)),
+                            sprintf("%.2f", quantile(x, c(0, 0.25, 0.5, 0.75, 1), na.rm = T))),
+        data = dat, na.action = na.pass))
+
+colnames(out) <- c('Group', 'N', 'Mean (SD)', 
+                      'Min', '25th percentile', 'Median', '75th percentile', 'Max') 
+
+dump_df_mat_to_file(out = out, 
+                    #decimals = c(1, 2, 2, 3), 
+                    table.title = 'Descriptive Statistics - Vignette Illustration', 
+                    table.footnote = '**All data simulated',
+                    file.name = 'Descr_Stat_output_vignette', 
+                    print.dir = print.to.this.directory)
+
+
+
+```
+
+Another example of how useful the `aggregate()` function is:
+
+```{r Desc_stat_2, eval = T}
+
+out <- aggregate(cbind(Y, Y_mcar, 'Diff' = Y - 0.2) ~
+                   Group + Time, 
+                  FUN = function(x)  mean(x, na.rm = T), 
+                 data = dat, 
+                 na.action = na.pass)
+
+out
+
+```
+
+You can also clean up the labels and then output that into a table. I 
+these basic R functions are sufficient to accomplish most 
+tasks. 
 
 ## Fit Model
 
@@ -64,9 +124,6 @@ mod <-lm(Y ~ Group, data = dat)
 
  Now that we have fit the model, we want to move quickly to create output. There are R packages that allow us to create output from fitted models. However, the function we will use here is very simple and clean, and allows us to output whatever we want. For example, with a few single steps we can dump this dataframe as MS Word output:
  
-```{r dir, echo = F, eval = T}
-print.to.this.directory = "C:/Users/ciaconangelo/Documents"
-```
 
 ```{r dump}
 out <- coef(summary(mod))
@@ -81,6 +138,8 @@ dump_df_mat_to_file(out = out,
                     print.dir = print.to.this.directory)
 ```
 
+
+## Frequency Tables AKA Cross Tabs AKA Pivot Tables 
 
 Okay now let's try out the `create_tables()` function. We can use that to create frequency tables. 
 
@@ -119,7 +178,10 @@ dump_df_mat_to_file(out = out,
                     print.dir = print.to.this.directory)
 ```
 
+There are a bunch of other options in the `create_tables()` function. The 
+documentation should help clarify some of it. 
 
+## Shell Tables
 Imagine we are preparing a draft version of a report and want to incorporate shell tables. We could simulate code in R, run the analysis, and then print out shell tables that would later be filled in with the observed values. This can be done easily using the `shell_tables` function:
 
 
