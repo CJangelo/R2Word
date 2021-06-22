@@ -5,7 +5,8 @@
 #' addresses rounding and formatting, prepares tables for output to MS Word file
 #' options to include total values as well
 #'
-#' @param freq.table pass the frequency table to the function
+#' @param freq.table pass the frequency table to the function. Must be a matrix
+#' or a dataframe.
 #' @param percent.table pass the table of percentages; default is to compute this in the function
 #' @param decimal1 number of decimals in sum
 #' @param decimal2 number of decimals in percentage
@@ -29,17 +30,26 @@ create_tables <- function(freq.table, percent.table = NULL, decimal1 = 0, decima
 
   #first, check to see if they're matrices: this may not always function the way you want, better to put them in yourself:
   # Do this yourself, too many possible errors
+  if (!is.matrix(freq.table) & !is.data.frame(freq.table)) {
+    stop('Pass a matrix or a dataframe - try as.matrix.data.frame() function')
+  }
   #if(is.vector(freq.table)){freq.table <- matrix(freq.table, nrow = 1)}
   #if(is.vector(percent.table)){freq.table <- matrix(freq.table, nrow = 1)}
 
 
-    if(is.null(percent.table) & !is.null(prop.table.N)){ percent.table <- (100/prop.table.N)*freq.table }
+    if (is.null(percent.table) & !is.null(prop.table.N)){
+      percent.table <- (100/prop.table.N)*freq.table
+      }
 
 
-    if(is.null(percent.table)){percent.table <- 100*prop.table(freq.table, margin = prop.table.margin)}
+    if (is.null(percent.table)){
+      percent.table <- 100*prop.table(freq.table, margin = prop.table.margin)
+      }
 
 
-if(!all(dim(freq.table) == dim(percent.table))){stop} # they had better have same dimensions, otherwise, stop function
+    if (!all(dim(freq.table) == dim(percent.table))){
+      stop("frequency table and percent table don't have the same dimensions")
+      } # they had better have same dimensions, otherwise, stop function
 
 
   # need to add the margins up here, I think:
